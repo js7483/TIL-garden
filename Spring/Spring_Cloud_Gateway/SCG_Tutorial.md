@@ -12,13 +12,16 @@ Spring reactive ecosystem을 기반으로 Spring Cloud 팀이 구현한 API 게�
 
 Spring Cloud Gateway는 다음 세 가지 주요 구성 요소로 이루어져 있다
 
-**Route:** 게이트웨이의 기본 골격이다. ID, 목적지 URI, 조건부(predicate) 집합, 필터(filter) 집합으로 구성된다. 조건부가 맞게 되면 해당하는 경로로 이동하게 된다.
+ - **Route:** 게이트웨이의 기본 골격이다. ID, 목적지 URI, 조건부(predicate) 집합, 필터(filter) 집합으로 구성된다. 조건부가 맞게 되면 해당하는 경로로 이동하게 된다.
 
-**Predicate:** Java8의 Function Predicate이다. Input Type은 Spring Framework ServerWebExchange이다. 조건부를 통해 Header 나 Parameter같은 HTTP 요청의 모든 항목을 비교할 수 있다.
+ - **Predicate:** Java8의 Function Predicate이다. Input Type은 Spring Framework ServerWebExchange이다. 조건부를 통해 Header 나 Parameter같은 HTTP 요청의 모든 항목을 비교할 수 있다.
 
-**Filter(필터):** 특정 팩토리로 구성된 Spring Framework GatewayFilter 인스턴스다. Filter에서는 다운스트림 요청 전후에 요청/응답을 수정할 수 있다.
+ - **Filter(필터):** 특정 팩토리로 구성된 Spring Framework GatewayFilter 인스턴스다. Filter에서는 다운스트림 요청 전후에 요청/응답을 수정할 수 있다.
 
-### Run
+### Implementing Spring Cloud Gateway
+Spring Cloud Gateway를 이용하려 경로를 생상하는 방법에는 두 가지가 있다.
+ - 코드 기반의 설정
+ - property 기반(application.properties 또는 application.yml)의 설정
 
 ### Reference
  - [https://docs.spring.io/spring-cloud-gateway/docs/current/reference/html/#glossary](https://docs.spring.io/spring-cloud-gateway/docs/current/reference/html/#glossary)
