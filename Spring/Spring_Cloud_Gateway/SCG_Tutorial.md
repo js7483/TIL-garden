@@ -12,16 +12,193 @@ Spring reactive ecosystem을 기반으로 Spring Cloud 팀이 구현한 API 게�
 
 Spring Cloud Gateway는 다음 세 가지 주요 구성 요소로 이루어져 있다
 
- - **Route:** 게이트웨이의 기본 골격이다. ID, 목적지 URI, 조건부(predicate) 집합, 필터(filter) 집합으로 구성된다. 조건부가 맞게 되면 해당하는 경로로 이동하게 된다.
+- **Route:** 게이트웨이의 기본 골격이다. ID, 목적지 URI, 조건부(predicate) 집합, 필터(filter) 집합으로 구성된다. 조건부가 맞게 되면 해당하는 경로로 이동하게 된다.
 
- - **Predicate:** Java8의 Function Predicate이다. Input Type은 Spring Framework ServerWebExchange이다. 조건부를 통해 Header 나 Parameter같은 HTTP 요청의 모든 항목을 비교할 수 있다.
+- **Predicate:** Java8의 Function Predicate이다. Input Type은 Spring Framework ServerWebExchange이다. 조건부를 통해 Header 나 Parameter같은 HTTP 요청의 모든 항목을 비교할 수 있다.
 
- - **Filter(필터):** 특정 팩토리로 구성된 Spring Framework GatewayFilter 인스턴스다. Filter에서는 다운스트림 요청 전후에 요청/응답을 수정할 수 있다.
+- **Filter(필터):** 특정 팩토리로 구성된 Spring Framework GatewayFilter 인스턴스다. Filter에서는 다운스트림 요청 전후에 요청/응답을 수정할 수 있다.
 
 ### Implementing Spring Cloud Gateway
-Spring Cloud Gateway를 이용하려 경로를 생상하는 방법에는 두 가지가 있다.
- - 코드 기반의 설정
- - property 기반(application.properties 또는 application.yml)의 설정
+
+Spring Cloud Gateway를 이용하려 경로를 생성하는 방법에는 두 가지가 있다.
+
+- property 기반(application.properties 또는 application.yml)의 설정
+
+    ```yaml
+    spring:
+      cloud:
+        gateway:
+          routes:
+            - id: shop-service
+              uri: http://localhost:8082
+              predicates:
+              filters:
+                - RewritePath=/shop/(?<segment>.*), /$\{segment}
+    ```
+
+- 코드 기반의 설정
+
+    ```kotlin
+    @Bean
+    	fun customRouteLocator(builder: RouteLocatorBuilder): RouteLocator? {
+    		return builder.routes()
+    				.route("shop-service") { r: PredicateSpec ->
+    					r.path("/shop/**")
+    							.filters { f -> f.rewritePath("/shop/(?<segment>.*)", "/\$\\{segment}") }
+    							.uri("http://localhost:8082")
+
+    				}
+    				.build()
+    	}
+    ```
+
+### 다양한 Route Predicate Factories
+
+**The After Route Predicate Factory**
+
+`After` route predicate는 datetime을 인자로 가진다. Reqeust가 해당 datetime 이후에 만들어 졌을 때 매칭 시킨다
+
+2021-01-29T21:00:00 이전에 들어온 요청들은 `[http://localhost:8082](http://localhost:8082)` 로 라우팅 시키고 싶으면
+
+```yaml
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: shop-service
+          uri: http://localhost:8082
+          predicates:
+            - Before=2021-01-29T21:00:00.000+09:00
+```
+
+또는
+
+```kotlin
+@Bean
+	fun customRouteLocator(builder: RouteLocatorBuilder): RouteLocator? {
+		return builder.routes()
+				.route("shop-service") { r: PredicateSpec ->
+					r.before(LocalDateTime.of(2021, 1, 29, 21, 0).atZone(ZoneId.systemDefault()))
+							.uri("http://localhost:8082")
+				}
+				.build()
+	}
+```
+
+**The Cookie Route Predicate Factory**
+
+`Cookie` route predicate는 cookie name과 cookie value를 인자로 가진다. cookie value는 정규표현식으로 표현되며 해당 정규 표현식과 일치하는 cookie value를 가졌을 때 매칭시킨다
+
+chocolate 라는 이름의 쿠키의 값이 정수로 이루어졌을 때만 라우팅 시키고 싶으면
+
+```yaml
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: shop-service
+        uri: http://localhost:8082
+        predicates:
+        - Cookie=chocolate, \d+
+```
+
+또는
+
+```kotlin
+@Bean
+	fun customRouteLocator(builder: RouteLocatorBuilder): RouteLocator? {
+		return builder.routes()
+				.route("shop-service") { r: PredicateSpec ->
+						r.cookie("chocolate", "\\d+")
+							.uri("http://localhost:8082")
+				}
+				.build()
+	}
+```
+
+**The Header Route Predicate Factory**
+
+`Header` route predicate는 header name과 header value를 인자로 가진다. header value는 정규 표현식으로 표현되며 해당 정규 표현식과 일치하는 header value를 가졌을 때 매칭시킨다
+
+X-Request-Id 라는 이름의 header의 값이 정수로 이루어졌을 때만 라우팅 시키고 싶으면
+
+```yaml
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: shop-service
+        uri: http://localhost:8082
+        predicates:
+        - Header=X-Request-Id, \d+
+```
+
+또는
+
+```kotlin
+@Bean
+	fun customRouteLocator(builder: RouteLocatorBuilder): RouteLocator? {
+		return builder.routes()
+				.route("shop-service") { r: PredicateSpec ->
+						r.header("X-Request-Id", "\\d+")
+							.uri("http://localhost:8082")
+				}
+				.build()
+	}
+```
+
+**The Path Route Predicate Factory**
+
+`Path` route predicate Factory 는 PathMatcher 패턴 리스트와 matchTrailingSlash를 인자로 받는다. matchTrailingSlash의 경우 optional이며 기본값은 true 이다
+
+`/shop/orders/{orderId}` 의 경로오는 요청을 라우팅 시키고 싶으면
+
+```yaml
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: shop-service
+        uri: http://localhost:8082
+        predicates:
+        - Path=/shop/orders/{orderId}
+```
+
+또는
+
+```kotlin
+@Bean
+	fun customRouteLocator(builder: RouteLocatorBuilder): RouteLocator? {
+		return builder.routes()
+				.route("shop-service") { r: PredicateSpec ->
+						r.path("/shop/orders/{orderId}")
+							.uri("http://localhost:8082")
+				}
+				.build()
+	}
+```
+
+만약 `Path=/shop/orders/{orderId}, false` 를 통해 matchTrailingSlash 옵션이 false가 된다면, `/shop/orders/1/` 와 같이 마지막에 `/` 가 붙어서 오는 요청에 대해 매칭되지 않는다.
+
+만약 필터에서 {orderId}의 파라미터 값에 접근하고 싶다면
+
+```kotlin
+@Component
+class CustomFilter: AbstractGatewayFilterFactory<Config>(Config::class.java) {
+
+    override fun apply(config: Config): GatewayFilter {
+        return GatewayFilter { exchange, chain ->
+            val uriVariables = ServerWebExchangeUtils.getUriTemplateVariables(exchange)
+            println(uriVariables["orderId"])
+            chain.filter(exchange).then(Mono.fromRunnable(Runnable { println("First post filter") }))
+        }
+    }
+}
+```
+
+**The Query Route Predicate Factory**
+
+**The RemoteAddr Route Predicate Factory**
 
 ### Reference
  - [https://docs.spring.io/spring-cloud-gateway/docs/current/reference/html/#glossary](https://docs.spring.io/spring-cloud-gateway/docs/current/reference/html/#glossary)
