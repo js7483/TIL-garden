@@ -149,7 +149,7 @@ spring:
 
 **The Path Route Predicate Factory**
 
-`Path` route predicate Factory 는 PathMatcher 패턴 리스트와 matchTrailingSlash를 인자로 받는다. matchTrailingSlash의 경우 optional이며 기본값은 true 이다
+`Path` route predicate 는 PathMatcher 패턴 리스트와 matchTrailingSlash를 인자로 받는다. matchTrailingSlash의 경우 optional이며 기본값은 true 이다
 
 `/shop/orders/{orderId}` 의 경로오는 요청을 라우팅 시키고 싶으면
 
@@ -198,7 +198,38 @@ class CustomFilter: AbstractGatewayFilterFactory<Config>(Config::class.java) {
 
 **The Query Route Predicate Factory**
 
+`Query` route predicate 는 query name과 query value를 인자로 가진다. query value는 정규표현식으로 표현되며 해당 정규 표현식과 일치하는 query value를 가졌을 때 매칭시킨다. 또한 query value는 optional이기 때문에 해당 값이 존재하지 않을 경우 해당 query name을 가진 모든 요청을 매칭 시킨다
+
 **The RemoteAddr Route Predicate Factory**
+
+`RemoteAddr` route predicate 는 하나 이상의 CIDR (IPv4 또는 IPv6) 를 인자로 가진다.
+
+만약 192.168.xxx.xxx 의 ip를 가지는 요청만 라우팅 시키고 싶으면
+
+```yaml
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: shop-service
+        uri: http://localhost:8082
+        predicates:
+        - RemoteAddr=192.168.1.1/24
+```
+
+또는
+
+```kotlin
+@Bean
+	fun customRouteLocator(builder: RouteLocatorBuilder): RouteLocator? {
+		return builder.routes()
+				.route("shop-service") { r: PredicateSpec ->
+						r.remoteAddr("192.168.1.1/24")
+							.uri("http://localhost:8082")
+				}
+				.build()
+	}
+```
 
 ### Reference
  - [https://docs.spring.io/spring-cloud-gateway/docs/current/reference/html/#glossary](https://docs.spring.io/spring-cloud-gateway/docs/current/reference/html/#glossary)
