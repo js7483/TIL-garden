@@ -230,6 +230,61 @@ spring:
 				.build()
 	}
 ```
+### Spring Cloud Gateway에서의 속도 제한
+
+Spring Cloud Gateway에서는 사용자의 초당 요청 속도를 제한할 수 있는 방법을 제공한다. 
+
+내부적으로 rate limiting을 구현하기 위해 **token bucket algorithm**을 사용한다
+
+**의존성 추가**
+
+내부적으로 redis를 사용하기 때문에 `spring-boot-starter-data-redis-reactive` 을 추가해주어야 한다
+
+```kotlin
+// build.gradle.kts
+...
+project(":gateway") {
+	dependencies {
+		implementation("org.springframework.cloud:spring-cloud-starter-gateway")
+		implementation("org.springframework.boot:spring-boot-starter-data-redis-reactive")
+	}
+}
+...
+```
+
+**KeyResolver**
+
+요청을 식별할 수 있는 KeyResolver를 정의할 수 있다
+
+```kotlin
+@Bean
+	fun userKeyResolver(): KeyResolver {
+		return KeyResolver { exchange ->
+			Mono.just(exchange.request.queryParams.getFirst("userId") ?: "1")
+		}
+	}
+```
+
+위의 경우는  `localhost:8080?userId=1234` 와 같이 param으로 userId가 오면 해당 값을 가지고 요청을 식별한다
+
+**설정**
+
+```yaml
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: shop-service
+          uri: http://localhost:8081
+          predicates:
+            - Path=/shop/**
+          filters:
+            - RewritePath=/shop/(?<segment>.*), /$\{segment}
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 6
+                redis-rate-limiter.burstCapacity: 10
+```
 
 ### Reference
  - [https://docs.spring.io/spring-cloud-gateway/docs/current/reference/html/#glossary](https://docs.spring.io/spring-cloud-gateway/docs/current/reference/html/#glossary)
