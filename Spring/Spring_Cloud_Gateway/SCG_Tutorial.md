@@ -1,9 +1,9 @@
 # Spring Cloud Gateway (SCG)
 
-### API Gateway
+### 01 - API Gateway
 인증/모니터링/오케스트레이션 등과 같은 기능이 추가된 Reverse Proxy를 의미 한다. Netflix zuul, Amazon API Gateway, Apigee 및 Spring Cloud Gateway 같은 것들이 잘 알려진 Api Gateway 구현체들이다.
 
-### Spring Cloud Gateway
+### 02 - Spring Cloud Gateway
 Spring reactive ecosystem을 기반으로 Spring Cloud 팀이 구현한 API 게이트웨이이다. 또한 논블로킹(non-blocking), 비동기(Asynchronous) 방식의 Netty Server를 내부적으로 사용한다
 
 요청에 대해 라우팅이 작동하는 대략적인 방식은 다음과 같다
@@ -18,7 +18,7 @@ Spring Cloud Gateway는 다음 세 가지 주요 구성 요소로 이루어져 �
 
 - **Filter(필터):** 특정 팩토리로 구성된 Spring Framework GatewayFilter 인스턴스다. Filter에서는 다운스트림 요청 전후에 요청/응답을 수정할 수 있다.
 
-### Implementing Spring Cloud Gateway
+### 03 - Implementing Spring Cloud Gateway
 
 Spring Cloud Gateway를 이용하려 경로를 생성하는 방법에는 두 가지가 있다.
 
@@ -52,7 +52,7 @@ Spring Cloud Gateway를 이용하려 경로를 생성하는 방법에는 두 가
     	}
     ```
 
-### 다양한 Route Predicate Factories
+### 04 - 다양한 Route Predicate Factories
 
 **The After Route Predicate Factory**
 
@@ -230,60 +230,60 @@ spring:
 				.build()
 	}
 ```
-### Spring Cloud Gateway에서의 속도 제한
 
-Spring Cloud Gateway에서는 사용자의 초당 요청 속도를 제한할 수 있는 방법을 제공한다. 
+### 05 - 다양한 GatewayFilter Factories
+SCG에서는 다양한 기본 GatewayFilter들을 제공한다. Filter 이름이 직관적이기 때문에 중요한 몇가지만 정리하였다.
 
-내부적으로 rate limiting을 구현하기 위해 **token bucket algorithm**을 사용한다
+**The AddRequestHeader GatewayFilter Factory**
 
-**의존성 추가**
+요청에 해당 header를 추가해준다
 
-내부적으로 redis를 사용하기 때문에 `spring-boot-starter-data-redis-reactive` 을 추가해주어야 한다
+만약 요청에 `X-Request-Foo: Bar` 라는 header를 추가해주고 싶다면
 
-```kotlin
-// build.gradle.kts
-...
-project(":gateway") {
-	dependencies {
-		implementation("org.springframework.cloud:spring-cloud-starter-gateway")
-		implementation("org.springframework.boot:spring-boot-starter-data-redis-reactive")
-	}
-}
-...
+```yaml
+spring: 
+  cloud: 
+    gateway: 
+      routes: 
+        - id: add_request_header_route 
+          uri: https://example.org 
+          filters: 
+            - AddRequestHeader=X-Request-Foo, Bar
 ```
 
-**KeyResolver**
+**The AddRequestParameter GatewayFilter Factory**
 
-요청을 식별할 수 있는 KeyResolver를 정의할 수 있다
+요청에 해당 query를 추가해준다
 
-```kotlin
-@Bean
-	fun userKeyResolver(): KeyResolver {
-		return KeyResolver { exchange ->
-			Mono.just(exchange.request.queryParams.getFirst("userId") ?: "1")
-		}
-	}
+만약 요청에 `?foo=bar` 를 추가시켜 주고 싶다면
+
+```yaml
+spring: 
+	cloud: 
+		gateway: 
+			routes: 
+			- id: add_request_parameter_route 
+				uri: https://example.org 
+				filters: 
+				- AddRequestParameter=foo, bar
+
 ```
 
-위의 경우는  `localhost:8080?userId=1234` 와 같이 param으로 userId가 오면 해당 값을 가지고 요청을 식별한다
+**The AddResponseHeader GatewayFilter Factory**
 
-**설정**
+요청의 응답에 header를 추가해 준다
+
+요청 응답에 `X-Response-Foo: Bar` 라는 header를 추가하고 싶다면
 
 ```yaml
 spring:
-  cloud:
-    gateway:
-      routes:
-        - id: shop-service
-          uri: http://localhost:8081
-          predicates:
-            - Path=/shop/**
-          filters:
-            - RewritePath=/shop/(?<segment>.*), /$\{segment}
-            - name: RequestRateLimiter
-              args:
-                redis-rate-limiter.replenishRate: 6
-                redis-rate-limiter.burstCapacity: 10
+	cloud:
+		gateway:
+			routes:
+			- id: add_request_header_route 
+				uri: https://example.org 
+				filters: 
+				- AddResponseHeader=X-Response-Foo, Bar
 ```
 
 ### Reference
