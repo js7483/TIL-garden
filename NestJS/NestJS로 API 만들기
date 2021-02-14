@@ -1,0 +1,82 @@
+# 01 - Introduction
+
+### Nest.js란?
+
+효율적이고, 안정적이며, 확장가능한 서버 어플리케이션을 구축하기 위한 Node.js 프레임워크이다. Nest.js는 모듈 구조를 제공함으로써 Node.js 문제를 해결하고자 했다. 
+
+또한 Typescript로 구성되어 있으며 프레임워크에서 DI(Dependency Injection)를 지원하여 개발의 편의를 제공한다.
+
+### 설치
+
+nest cli 설치
+
+```cpp
+$ npm i -g @nestjs/cli
+```
+
+프로젝트 셍성
+
+```cpp
+$ nest new my-nest-project
+```
+
+## 02 - Nest.js 구조
+
+### Controllers
+
+대부분의 웹 프레임워크 처럼 Nest.js의 컨트롤러도 요청을 처리하고 클라이언트에 응답을 반환하는 역할을 한다.
+
+Nest.js에서 컨트롤러를 정의하기 위해서는 아래와 같이 `@Controller(...)` 데코레이터를 붙이면 된다
+
+```tsx
+// users.controller.ts 
+
+import { Controller, Get } from '@nestjs/common';
+
+@Controller('/users')
+export class UsersController {
+ @Get()
+ findAll() { 
+   return 'Users';
+ }
+}
+```
+
+응용 프로그램 내의 모든 /users GET 요청을 `findAll()` 함수가 처리하게 된다.
+
+Controller를 추가한 뒤 Nest.js가 해당 Controller를 인식하게 하기 위해 모듈 정의에 추가해주어야 한다. 루트 모듈 또는 서브 모듈에 추가해주면 된다. 
+
+### Providers
+
+Nest.js는 Angular에서 많은 영감을 받았기 때문에 Angular와 비슷하게 쉽게 Provider를 만들어 Controller나 다른 Provider에도 주입할 수 있다. 이러한 Provider들은 Service라고도 불린다. 
+
+Nest.js의 Service Provider는 일반적인 Javascript 클래스에 `@Injectable()` 데코레이터가 붙은 것이다. 
+
+예를 들어 아래와 같이 사용자를 가져오는 Service를 간단히 생성할 수 있다.
+
+```tsx
+// users.service.ts
+
+import { Injectable } from '@nestjs/common';
+import { User } from './interfaces/user.interface';
+
+@Injectable()
+export class UsersService {
+  private readonly users: User[] = [];
+
+  create(user: User) { 
+    this.users.push(user);   
+	}
+
+  findAll(): User[] {
+    return this.users;
+  }
+}
+```
+
+### Modules
+
+## 참고
+
+- [https://docs.nestjs.com/](https://docs.nestjs.com/)
+- [https://morioh.com/p/e9368882c1cb](https://morioh.com/p/e9368882c1cb)
