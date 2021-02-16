@@ -76,6 +76,56 @@ export class UsersService {
 
 ### Modules
 
+`@Module` 데코레이터를 통해 해당 코드가 모듈임을 명시한다. 해당 데코레이터에 작성된 메타데이터를 통해 Nest.js에 조직화된 구조를 제공한다. 
+
+Nest.js는 적어도 하나 이상의 모듈을 가져야한다. 보통은 root module을 가지는데 이 root module은 top-level 모듈로써 어플리케이션이 시작될 때 등록된다
+
+```tsx
+import { NestFactory } from '@nestjs/core';
+import { AppModule } from './app.module';
+
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule, {});
+  await app.listen(3000);
+}
+bootstrap();
+```
+
+또한 어플리케이션이 복잡해진다면 특정 기능을 하는 모듈들을 분리하여 관리할 수 있다. 
+
+```tsx
+// user.module.ts
+
+import { Module } from '@nestjs/common';
+import { UsersController } from './users.controller.ts';
+import { UsersService } from './users.service.ts';
+
+@Module({
+  controllers: [UsersController],
+  providers: [UsersService]
+})
+
+export class UsersModule {}
+```
+
+단, 이렇게 분리한 모듈은 root module에 등록해주어야 한다 
+
+```tsx
+// app.module.ts
+
+import { Module } from '@nestjs/common';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
+import { UserModule } from './user/user.module';
+
+@Module({
+  imports: [UserModule],
+  controllers: [AppController],
+  providers: [AppService],
+})
+export class AppModule {}
+```
+
 ## 참고
 
 - [https://docs.nestjs.com/](https://docs.nestjs.com/)
