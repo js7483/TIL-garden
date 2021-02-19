@@ -126,6 +126,49 @@ import { UserModule } from './user/user.module';
 export class AppModule {}
 ```
 
+### Middleware
+
+미들웨어는 요청에 대한 Router Handler가 처리되기 전에 호출되는 함수이다. Nest.js의 미들웨어는 기본적으로 express의 미들웨어와 동일하다. 
+
+커스텀 미들웨어를 만들기 위해서는 NestMiddleware를 implements한 클래스에 @Injectable() 데코레이터를 붙여주면 된다. 
+
+```tsx
+// logger.middleware.ts
+import { Injectable, NestMiddleware } from '@nestjs/common';
+import { Request, Response, NextFunction } from 'express';
+
+@Injectable()
+export class LoggerMiddleware implements NestMiddleware {
+  use(req: Request, res: Response, next: NextFunction) {
+    console.log('Request...');
+    next();
+  }
+}
+```
+
+이렇게 생성한 미들웨어를 모듈 클래스의 `configure()` 함수를 통해 등록해주면 된다.
+
+```tsx
+// app.module.ts
+import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
+import { LoggerMiddleware } from './common/middleware/logger.middleware';
+import { UsersController } from './users.controller.ts';
+import { UsersService } from './users.service.ts';
+import { UserModule } from './user/user.module';
+
+@Module({
+  imports: [UserModule],
+  controllers: [AppController],
+  providers: [AppService],
+})
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(LoggerMiddleware)
+			.forRoutes('*');
+  }
+}
+```
 ## 참고
 
 - [https://docs.nestjs.com/](https://docs.nestjs.com/)
