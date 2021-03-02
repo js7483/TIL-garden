@@ -1,0 +1,36 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: order-service
+  jpa:
+    generate-ddl: true
+    hibernate:
+      ddl-auto: create
+    show-sql: true
+    properties:
+      hibernate:
+        show_sql: true
+        format_sql: true
+  datasource:
+    url: jdbc:mysql://localhost:3306/ftgo_order_service
+    username: root
+    password: rootpassword
+    driver-class-name: com.mysql.cj.jdbc.Driver
+logging:
+  level:
+    org.springframework.orm.jpa: INFO
+    order.hibernate.SQL: DEBUG
+    io.eventuate: DEBUG
+    io.eventuate.tram: DEBUG
+    com.example: DEBUG
+
+## Apache Kafka
+eventuatelocal:
+  kafka:
+    bootstrap:
+      servers: localhost:9094
+  zookeeper:
+    connection:
+      string: localhost:2181

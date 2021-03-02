@@ -1,0 +1,2 @@
+CREATE DATABASE ftgo_order_service;
+CREATE DATABASE ftgo_shop_service;
