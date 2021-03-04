@@ -51,14 +51,12 @@ subprojects {
         }
         implementation("io.github.microutils:kotlin-logging:2.0.4")
 
-        implementation("io.eventuate.tram.sagas:eventuate-tram-sagas-spring-orchestration-simple-dsl:0.14.0.RELEASE")
-        implementation("io.eventuate.tram.sagas:eventuate-tram-sagas-spring-participant:0.14.0.RELEASE")
+        implementation("io.eventuate.tram.sagas:eventuate-tram-sagas-spring-orchestration-simple-dsl:0.15.2.RELEASE")
+        implementation("io.eventuate.tram.sagas:eventuate-tram-sagas-spring-participant:0.15.2.RELEASE")
 
         implementation("io.eventuate.tram.core:eventuate-tram-spring-messaging:0.26.1.RELEASE")
         implementation("io.eventuate.tram.core:eventuate-tram-aggregate-domain-events:0.26.1.RELEASE")
         implementation("io.eventuate.tram.core:eventuate-tram-spring-jdbc-kafka:0.26.1.RELEASE")
-//        implementation("io.eventuate.tram.core:eventuate-tram-spring-commands:0.26.1.RELEASE")
-//        implementation("io.eventuate.tram.core:eventuate-tram-spring-events:0.26.1.RELEASE")
 
     }
 
