@@ -68,7 +68,7 @@ class CreateOrderSaga: SimpleSaga<CreateOrderSagaState> {
 
     private fun confirmCreateTicket(data: CreateOrderSagaState): CommandWithDestination {
         logger.debug("Send ConfirmCreateTicketCommand to kitchenService channel")
-        return CommandWithDestinationBuilder.send(ConfirmCreateTicketCommand(data.ticketId ?: throw Exception("")))
+        return CommandWithDestinationBuilder.send(ConfirmCreateTicketCommand(data.ticketId ?: throw Exception("TicketId should not be null")))
                 .to(ShopServiceChannels.SHOP_SERVICE_COMMAND_CHANNEL).build()
     }
 
@@ -80,12 +80,12 @@ class CreateOrderSaga: SimpleSaga<CreateOrderSagaState> {
 
     private fun handleCreateTicketReply(data: CreateOrderSagaState, reply: CreateTicketReply) {
         logger.debug("Receive CreateTicketReply {}", reply.ticketId)
-        // data.ticketId = reply.ticketId
+         data.ticketId = reply.ticketId
     }
 }
 
 data class CreateOrderSagaState(
         val orderId: Long,
         val orderDetails: OrderDetailsDto,
-        val ticketId: Long? = null
+        var ticketId: Long? = null
 )

@@ -7,6 +7,7 @@ import com.example.common.utils.MoneyConverter
 import com.example.order.event.OrderAuthorizedEvent
 import com.example.order.event.OrderCreatedEvent
 import com.example.order.event.OrderDomainEvent
+import com.example.order.event.OrderRejectedEvent
 import io.eventuate.tram.events.aggregates.ResultWithDomainEvents
 import javax.persistence.*
 
@@ -63,6 +64,16 @@ data class Order(
                         OrderState.APPROVAL_PENDING -> {
                                 orderState = OrderState.APPROVED
                                 ResultWithDomainEvents(this, listOf(OrderAuthorizedEvent()))
+                        }
+                        else -> { throw Exception("")}
+                }
+        }
+
+        fun rejectCreate(): ResultWithDomainEvents<Order, OrderDomainEvent> {
+                return when(orderState) {
+                        OrderState.APPROVAL_PENDING -> {
+                                orderState = OrderState.REJECTED
+                                ResultWithDomainEvents(this, listOf(OrderRejectedEvent()))
                         }
                         else -> { throw Exception("")}
                 }

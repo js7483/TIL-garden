@@ -12,3 +12,5 @@ class OrderCreatedEvent(
 ): OrderDomainEvent
 
 class OrderAuthorizedEvent: OrderDomainEvent
+
+class OrderRejectedEvent: OrderDomainEvent

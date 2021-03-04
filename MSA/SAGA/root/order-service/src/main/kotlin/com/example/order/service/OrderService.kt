@@ -2,10 +2,8 @@ package com.example.order.service
 
 import com.example.common.dto.OrderDetailsDto
 import com.example.common.dto.OrderLineItemDto
-import com.example.order.domain.DeliveryInformation
-import com.example.order.domain.Order
-import com.example.order.domain.OrderLineItem
-import com.example.order.domain.Shop
+import com.example.common.utils.Money
+import com.example.order.domain.*
 import com.example.order.dto.req.LineItem
 import com.example.order.event.OrderEventPublisher
 import com.example.order.repository.OrderRepository
@@ -56,9 +54,17 @@ class OrderService(
     }
 
     fun approveOrder(orderId: Long) {
-        val order = orderRepository.findById(orderId).orElseThrow { throw Exception("") }
+        val order = orderRepository.findById(orderId).orElseThrow { throw Exception("Order(orderId=$orderId) not exist") }
         val rwe = order.approveCreate()
         orderRepository.save(rwe.result)
         orderAggregateEventPublisher.publish(rwe.result, rwe.events)
+    }
+
+    fun rejectOrder(orderId: Long) {
+        val order = orderRepository.findById(orderId).orElseThrow { throw Exception("Order(orderId=$orderId) not exist") }
+        val rwe = order.rejectCreate()
+        orderRepository.save(rwe.result)
+        orderAggregateEventPublisher.publish(rwe.result, rwe.events)
+
     }
 }
