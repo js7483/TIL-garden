@@ -1,3 +1,4 @@
+import org.springframework.boot.gradle.tasks.bundling.BootJar
 
 buildscript {
     dependencies {
@@ -11,6 +12,8 @@ plugins {
     id("io.spring.dependency-management") version "1.0.10.RELEASE"
     kotlin("jvm") version "1.4.21"
     kotlin("plugin.spring") version "1.4.21"
+    id("com.palantir.docker") version "0.25.0"
+    id("com.palantir.docker-compose") version "0.25.0"
 }
 
 allprojects {
@@ -30,8 +33,8 @@ subprojects {
     apply(plugin = "org.jetbrains.kotlin.plugin.spring")
     apply(plugin = "org.springframework.boot")
     apply(plugin = "io.spring.dependency-management")
-//    apply(plugin = "com.palantir.docker")
-//    apply(plugin = "com.palantir.docker-compose")
+    apply(plugin = "com.palantir.docker")
+    apply(plugin = "com.palantir.docker-compose")
 
     group = "com.example"
     version = "0.0.1-SNAPSHOT"
@@ -79,12 +82,23 @@ subprojects {
             useJUnitPlatform()
         }
 
+        dockerComposeDown { enabled = false }
+        dockerComposeUp { enabled = false}
+
         allOpen {
             annotation("javax.persistence.Entity")
             annotation("javax.persistence.Access")
             annotation("javax.persistence.MappedSuperclass")
             annotation("javax.persistence.Embeddable")
         }
+    }
+
+    docker {
+        val bootJar: BootJar by tasks
+
+        name = project.name
+        files(".container/Dockerfile", "build/libs/${bootJar.archiveFileName.get()}")
+        buildArgs(mapOf("JAR_FILE" to bootJar.archiveFileName.get()))
     }
 
 }
@@ -129,4 +143,13 @@ project("common") {
             enabled = true
         }
     }
+}
+
+tasks.bootJar {enabled = false}
+tasks.jar {enabled = true}
+tasks.bootRun {enabled = false}
+tasks.docker {enabled = false}
+
+dockerCompose {
+    setDockerComposeFile("docker-compose.yml")
 }
